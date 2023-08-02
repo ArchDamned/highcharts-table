@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Таблица</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+</head>
+<body>
+    <table width="100%" id="table">
+        
+    </table>
+
+
+
+
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+
+    <script>
+        
+        const table = document.getElementById('table')
+
+        
+
+        const data = {
+            params: {
+                name_head:'Показатель',
+                value_heads: ['Текущий день','Вчера','Этот день недели']
+            },
+            items: {
+                i0: {
+                    name:'Выручка',
+                    subitems: {
+                        i0: {
+                            name: 'Наличные',
+                            values: [300000, 291000, 300000],
+                            change: [0, -3, 0]
+                        },
+                        i1: {
+                            name: 'Безналичный расчет',
+                            values: [100000, 97000, 100000],
+                            change: [0, -3, 0]
+                        },
+                        i2: {
+                            name: 'Кредитные карты',
+                            values: [100521, 97321, 100521],
+                            change: [0, -3, 0]
+                        }
+                    }
+                },
+                i1: {
+                    name:'Средний чек, руб',
+                    subitems: {
+                        i0: {
+                            name: 'Наличные',
+                            values: [300000, 291000, 300000],
+                            change: [0, -3, 0]
+                        },
+                        i1: {
+                            name: 'Безналичный расчет',
+                            values: [100000, 97000, 100000],
+                            change: [0, -3, 0]
+                        },
+                        i2: {
+                            name: 'Кредитные карты',
+                            values: [100521, 97321, 100521],
+                            change: [0, -3, 0]
+                        }
+                    }
+                },
+                i2: {
+                    name:'Средний гость, руб',
+                    subitems: {
+                        i0: {
+                            name: 'Наличные',
+                            values: [1200, 1200, 1200],
+                            change: [0, 15, 7]
+                        },
+                        i1: {
+                            name: 'Безналичный расчет',
+                            values: [1200, 1200, 1200],
+                            change: [0, 15, 5]
+                        },
+                        i2: {
+                            name: 'Кредитные карты',
+                            values: [1200, 1200, 1200],
+                            change: [0, 10, 4]
+                        }
+                    }
+                },
+                i3: {
+                    name:'Удаления из чека (после оплаты), руб',
+                    subitems: {
+                        i0: {
+                            name: 'Наличные',
+                            values: [1000, 1000, 1000],
+                            change: [0, -4, 0]
+                        },
+                        i1: {
+                            name: 'Безналичный расчет',
+                            values: [1000, 1000, 1000],
+                            change: [0, -4, 0]
+                        },
+                        i2: {
+                            name: 'Кредитные карты',
+                            values: [1000, 1000, 1000],
+                            change: [0, -2, 0]
+                        }
+                    }
+                },
+                i4: {
+                    name:'Удаления из чека (до оплаты оплаты), руб',
+                    subitems: {
+                        i0: {
+                            name: 'Наличные',
+                            values: [1000, 1000, 1000],
+                            change: [0, -20, 0]
+                        },
+                        i1: {
+                            name: 'Безналичный расчет',
+                            values: [1000, 1000, 1000],
+                            change: [0, -20, 0]
+                        },
+                        i2: {
+                            name: 'Кредитные карты',
+                            values: [1000, 1000, 1000],
+                            change: [0, -20, 0]
+                        }
+                    }
+                },
+                i5: {
+                    name:'Количество чеков',
+                    values: [34, 36, 34],
+                    change: [0, -5, 0]
+                },
+                i6: {
+                    name:'Количество гостей',
+                    values: [34, 36, 32],
+                    change: [0, -5, 0]
+                }
+            }
+        }
+
+        let tableContents = ''
+        tableContents += '<thead>'
+        tableContents += `<td>${data.params.name_head}</td>`
+        for(const h in data.params.value_heads) {
+            tableContents += `<td class="${h==0?'today':''}">${data.params.value_heads[h]}</td>`
+        }
+        tableContents += '</thead>'
+
+        for(const i in data.items) {
+            tableContents += `<tr id="tr-${i}">`
+            tableContents += `<td>${data.items[i].name}</td>`
+            
+            if(!data.items[i].subitems) {
+                for(const v in data.items[i].values) {
+                    tableContents += `<td class="numbers ${v==0?'today':''}"><span class="value">${data.items[i].values[v]}</span>`
+                    tableContents +=`<span class="change ${data.items[i].change[v]<0?'redtext':'greentext'}">${data.items[i].change[v]!=0?data.items[i].change[v]+'%':''}</span>`
+                    tableContents += '</td>'
+                }
+            } else {
+                const sumsOfSubitems = sumSubitems(data.items[i].subitems)
+                const sumsOfSubitemsChange = sumSubitemsChange(data.items[i].subitems)
+                for(const s in sumsOfSubitems){
+                    tableContents += `<td class="numbers ${s==0?'today':''} 
+                        ${sumsOfSubitemsChange[s]>=10?'greenbg':''} 
+                        ${sumsOfSubitemsChange[s]<=-10?'redbg':''}">
+                        <span class="value">${sumsOfSubitems[s]}</span>`
+                    tableContents +=`<span class="change ${sumsOfSubitemsChange[s]<0?'redtext':'greentext'}">
+                        ${sumsOfSubitemsChange[s]!=0?sumsOfSubitemsChange[s]+'%':''}</span>`
+                    tableContents += '</td>'
+                }
+            }
+            
+            tableContents += '</tr>'
+            tableContents += `<tr class="details-container details-container-${i}"><td colspan="4"><div id="chart-div-${i}"></div></td></tr>`
+            if(data.items[i].subitems) {
+                for(const si in data.items[i].subitems) {
+                    tableContents += `<tr class="details-container details-container-${i}">`
+                    tableContents += `<td class="details-cell">${data.items[i].subitems[si].name}</td>`
+                    for(const sv in data.items[i].subitems[si].values) {
+                        tableContents += `<td class="details-cell numbers ${sv==0?'today':''} 
+                            ${data.items[i].subitems[si].change[sv]>=10?'greenbg':''} 
+                            ${data.items[i].subitems[si].change[sv]<=-10?'redbg':''}">
+                            <span class="value">${data.items[i].subitems[si].values[sv]}</span>`
+                        tableContents +=`<span class="details-cell change ${data.items[i].subitems[si].change[sv]<0?'redtext':'greentext'}
+                            ${data.items[i].subitems[si].change[sv]>=10?'greenbg':''} 
+                            ${data.items[i].subitems[si].change[sv]<=-10?'redbg':''}">
+                            ${data.items[i].subitems[si].change[sv]!=0?data.items[i].subitems[si].change[sv]+'%':''}</span>`
+                        tableContents += '</td>'
+                    }
+                    tableContents += '</tr>'
+                }
+            }
+        }
+
+        table.innerHTML = tableContents
+
+        const trs = document.getElementsByTagName('tbody')
+        
+        for(const i in data.items) {
+            document.getElementById(`tr-${i}`).addEventListener('click', event => {
+                let containers = document.getElementsByClassName(`details-container-${i}`)
+                for(let c=0; c < containers.length; c++) {
+                    if(containers[c].style.visibility=='visible') {
+                        containers[c].style.visibility = 'collapse'
+                    } else {
+                        containers[c].style.visibility = 'visible'
+                    }
+                }
+            })
+        }
+
+        for(const i in data.items) {
+            Highcharts.chart(`chart-div-${i}`, {
+                chart: {
+                    type: 'line'
+                },
+                title: {
+                    text: ''
+                },
+                xAxis: {
+                    categories: data.params.value_heads
+                },
+                yAxis: {
+                    title: {
+                        text: data.items[i].name
+                    }
+                },
+                series: [{
+                    name: '',
+                    data: data.items[i].subitems?sumSubitems(data.items[i].subitems):data.items[i].values
+                }]
+            });
+        }
+
+        function sumSubitems(subitems) {
+            let arrayOfSums = []
+            for(let a=0; a<data.params.value_heads.length; a++){
+                let sum = 0
+                for(const s in subitems) {
+                    sum += subitems[s].values[a]
+                }
+                arrayOfSums.push(Math.trunc(sum))
+            }
+            return arrayOfSums
+        }
+        
+        function sumSubitemsChange(subitems) {
+            let arrayOfSums = []
+            for(let a=0; a<data.params.value_heads.length; a++){
+                let sum = 0
+                for(const s in subitems) {
+                    sum += subitems[s].change[a]
+                }
+                arrayOfSums.push(Math.trunc(sum/data.params.value_heads.length))
+            }
+            return arrayOfSums
+        }
+
+    </script>
+</body>
+</html>
